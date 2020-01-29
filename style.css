@@ -1,0 +1,61 @@
+html, body {
+    margin: 0;
+    font-family: Verdana, sans-serif;
+    line-height: 1.5;
+}
+
+#progressbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background: #0f0;
+    z-index: 1;
+}
+
+.template {
+    display: none;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 0 !important;
+}
+
+#tabbar {
+    overflow: hidden;
+    width: 100%;
+    background: #000;
+    color: #fff;
+}
+
+.tabbar-item {
+    padding: 8px 16px;
+    float: left;
+    width: auto;
+    border: none;
+    display: block;
+    outline: 0;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    background-color: inherit;
+    text-align: center;
+    cursor: pointer;
+}
+
+.tabbar-item:hover {
+    background: #333;
+}
+
+.tabbar-item.active {
+    background: #555;
+}
+
+.box {
+    margin: 10px;
+    display: none;
+}
+
+.box.active {
+    display: block;
+}
