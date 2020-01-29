@@ -1,11 +1,13 @@
-const FREQUENCY_PROGRESS_UPDATE_IN_MS = 20;
-
 const tabs = [
     { tabTitle: "Line", heading: "Rescue Line" },
     { tabTitle: "Line Entry", heading: "Rescue Line Entry" },
     { tabTitle: "Maze", heading: "Rescue Maze" },
     { tabTitle: "Maze Entry", heading: "Rescue Maze Entry" },
 ];
+
+const FREQUENCY_PROGRESS_UPDATE_IN_MS = 20;
+
+const LS_TAB_ID = "current-tab-id";
 
 let currentTabId = null;
 
@@ -20,7 +22,7 @@ let getTime = function () {
 
 window.onload = function() {
     initTabs();
-    switchToTab(0);
+    switchToTab(readTabIdFromLocalStorage() || 0);
     //startAutoSwitchingTabs();
 };
 
@@ -69,6 +71,7 @@ let showTab = function (tabId) {
     document.getElementById("tab-"+tabId).classList.add("active");
     document.getElementById("box-"+tabId).classList.add("active");
     currentTabId = tabId;
+    writeTabIdToLocalStorage(tabId);
 };
 
 let switchToNextTab = function () {
@@ -77,6 +80,14 @@ let switchToNextTab = function () {
     } else {
         switchToTab(currentTabId+1);
     }
+};
+
+let readTabIdFromLocalStorage = function () {
+    return localStorage.getItem(LS_TAB_ID);
+};
+
+let writeTabIdToLocalStorage = function (tabId) {
+    localStorage.setItem(LS_TAB_ID, tabId);
 };
 
 let startAutoSwitchingTabs = function (durationInSeconds) {
