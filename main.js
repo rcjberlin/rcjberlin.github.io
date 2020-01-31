@@ -1,11 +1,12 @@
 const tabs = [
-    { tabTitle: "Line", heading: "Rescue Line" },
-    { tabTitle: "Line Entry", heading: "Rescue Line Entry" },
+    { tabTitle: "Line", heading: "Rescue Line", url: "/evaluation/results/standingsLine.json" },
+    { tabTitle: "Line Entry", heading: "Rescue Line Entry", url: "/evaluation/results/standingsEntry.json" },
     { tabTitle: "Maze", heading: "Rescue Maze" },
     { tabTitle: "Maze Entry", heading: "Rescue Maze Entry" },
 ];
 
 const FREQUENCY_PROGRESS_UPDATE_IN_MS = 20;
+const TIME_RELOAD_DATA_IN_S = 60;
 
 const LS_TAB_ID = "current-tab-id";
 
@@ -43,6 +44,12 @@ let initTabs = function () {
         heading = box.querySelector("#heading");
         heading.id = "heading-" + i;
         heading.innerHTML = tabs[i].heading;
+        table = box.querySelector("#table");
+        table.id = "table-" + i;
+        table.innerHTML = "";
+        lastUpdateText = box.querySelector("#last-update");
+        lastUpdateText.id = "last-update-" + i;
+        lastUpdateText.innerHTML = "";
         boxWrapper.appendChild(box);
     }
 };
@@ -72,6 +79,7 @@ let showTab = function (tabId) {
     document.getElementById("box-"+tabId).classList.add("active");
     currentTabId = tabId;
     writeTabIdToLocalStorage(tabId);
+    updateDataForTab(tabId);
 };
 
 let switchToNextTab = function () {
@@ -79,6 +87,35 @@ let switchToNextTab = function () {
         switchToTab(0);
     } else {
         switchToTab(currentTabId+1);
+    }
+};
+
+let updateDataForTab = function (tabId) {
+    if (tabs[tabId].url) {
+        if (tabs[tabId].loaded && tabs[tabId].loaded + TIME_RELOAD_DATA_IN_S > getTime()) {
+            // last update was just recently
+            return;
+        }
+        fetch(tabs[tabId].url)
+        .then((response) => response.json())
+        .then((json) => {
+            let table = document.getElementById("table-"+tabId);
+            table.innerHTML = "";
+            for (let row of json) {
+                let newRow = table.insertRow(-1);
+                for (let cell of row) {
+                    newRow.insertCell(-1).innerText = String(cell);
+                }
+            }
+            tabs[tabId].loaded = getTime();
+            document.getElementById("last-update-"+tabId).innerText = "Erfolgreich"; // TODO: insert time of last server update
+        })
+        .catch((error) => {
+            console.log(error);
+            document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen";
+        });
+    } else {
+        document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen";
     }
 };
 
