@@ -16,6 +16,7 @@ let timeStartProgress = null;
 let progressDuration = null;
 let progressIntervalId = null;
 let autoSwitchingTimeoutId = null;
+let switchToNextTabTimeoutId = null;
 
 let getTime = function () {
 	return (new Date).getTime() / 1000;
@@ -72,6 +73,7 @@ let switchToTab = function (tabId) {
 let hideTab = function (tabId) {
     document.getElementById("tab-"+tabId).classList.remove("active");
     document.getElementById("box-"+tabId).classList.remove("active");
+    clearSwitchToNextTabTimeout();
 };
 
 let showTab = function (tabId) {
@@ -113,10 +115,31 @@ let updateDataForTab = function (tabId) {
         .catch((error) => {
             console.log(error);
             document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen";
+            switchToNextTabIfAutoSwitching();
         });
     } else {
         document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen";
+        switchToNextTabIfAutoSwitching();
     }
+};
+
+let switchToNextTabIfAutoSwitching = function () {
+    if (autoSwitchingTimeoutId) {
+        switchToNextTabTimeout();
+    }
+};
+
+let switchToNextTabTimeout = function (durationInSeconds) {
+    if (!durationInSeconds) { durationInSeconds = 2; }
+    switchToNextTabTimeoutId = setTimeout(function () {
+        switchToNextTab();
+        startAutoSwitchingTabs(progressDuration); // restart so that progress starts at 0%
+    }, durationInSeconds*1000);
+};
+
+let clearSwitchToNextTabTimeout = function () {
+    clearTimeout(switchToNextTabTimeoutId);
+    switchToNextTabTimeoutId = null;
 };
 
 let readTabIdFromLocalStorage = function () {
