@@ -42,6 +42,12 @@ html, body {
     text-align: center;
     cursor: pointer;
 }
+button::-moz-focus-inner,
+input[type="reset"]::-moz-focus-inner,
+input[type="button"]::-moz-focus-inner,
+input[type="submit"]::-moz-focus-inner {
+    border: none;
+}
 
 .tabbar-item:hover {
     background: #333;
