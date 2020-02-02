@@ -1,6 +1,6 @@
-const tabs = [
-    { tabTitle: "Line", heading: "Rescue Line", url: "/evaluation/results/standingsLine.json", qualifyingTeams: 1 },
-    { tabTitle: "Line Entry", heading: "Rescue Line Entry", url: "/evaluation/results/standingsEntry.json", qualifyingTeams: 1 },
+let tabs = [
+    { tabTitle: "Line", heading: "Rescue Line", url: "/evaluation/results/standingsLine.json", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 1 },
+    { tabTitle: "Line Entry", heading: "Rescue Line Entry", url: "/evaluation/results/standingsEntry.json", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 1 },
     { tabTitle: "Maze", heading: "Rescue Maze", qualifyingTeams: 1 },
     { tabTitle: "Maze Entry", heading: "Rescue Maze Entry", qualifyingTeams: 1 },
 ];
@@ -102,17 +102,9 @@ let updateDataForTab = function (tabId) {
         fetch(tabs[tabId].url)
         .then((response) => response.json())
         .then((json) => {
-            let table = document.getElementById("table-"+tabId);
-            table.innerHTML = "";
-            for (let row of json) {
-                let newRow = table.insertRow(-1);
-                if (!isNaN(row[0]) && Number(row[0]) <= tabs[tabId].qualifyingTeams) {
-                    newRow.classList.add("qualified");
-                }
-                for (let cell of row) {
-                    newRow.insertCell(-1).innerText = String(cell);
-                }
-            }
+            tabs[tabId].data = json;
+            tabs[tabId].sortedColumn = null;
+            showTable(tabId);
             tabs[tabId].loaded = getTime();
             document.getElementById("last-update-"+tabId).innerText = "Erfolgreich"; // TODO: insert time of last server update
         })
@@ -125,6 +117,80 @@ let updateDataForTab = function (tabId) {
         document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen";
         switchToNextTabIfAutoSwitching();
     }
+};
+
+let showTable = function (tabId) {
+    let table = document.getElementById("table-"+tabId);
+    let data = tabs[tabId].data;
+    table.innerHTML = "";
+    for (let rowId=0; rowId<data.length; rowId++) {
+        let dataRow = data[rowId];
+        let tableRow = table.insertRow(-1);
+        if (!isNaN(dataRow[0]) && Number(dataRow[0]) <= tabs[tabId].qualifyingTeams) {
+            tableRow.classList.add("qualified");
+        }
+        for (let cellId=0; cellId<dataRow.length; cellId++) {
+            let cell = dataRow[cellId];
+            if (rowId === 0) {
+                // ignore header
+            } else if (tabs[tabId].columnsScore.includes(cellId)) {
+                cell = castScoreForTable(cell);
+            } else if (tabs[tabId].columnsTime.includes(cellId)) {
+                cell = castTimeForTable(cell);
+            }
+            tableRow.insertCell(-1).innerText = String(cell);
+        }
+    }
+    makeTableSortable(tabId);
+};
+
+let sortTable = function (tabId, column) {
+    let reverse = false;
+    if (tabs[tabId].sortedColumn === column) {
+        reverse = true;
+        tabs[tabId].sortedColumn = null;
+    } else {
+        tabs[tabId].sortedColumn = column;
+    }
+    tabs[tabId].data = [tabs[tabId].data[0]].concat(tabs[tabId].data.slice(1).sort(function (a,b) {
+        if (a[column] === b[column]) {
+            return 0;
+        } else if (tabs[tabId].columnsTime.includes(column) ||
+                    tabs[tabId].columnsScore.includes(column)) {
+            return reverse ? b[column] - a[column] : a[column] - b[column];
+        } else if (typeof(a[column]) === "string" && typeof(b[column]) === "string") {
+            return reverse ^ (a[column].toLowerCase() < b[column].toLowerCase());
+        } else {
+            return reverse ^ (a[column] < b[column]);
+        }
+    }));
+    showTable(tabId);
+};
+
+let makeTableSortable = function (tabId) {
+    let table = document.getElementById("table-"+tabId);
+    let th = table.rows[0];
+    for (let i=0; i<th.cells.length; i++) {
+        (function (i) {
+            th.cells[i].addEventListener('click', function () {
+                sortTable(tabId, i);
+            });
+        }(i));
+    }
+};
+
+let castScoreForTable = function (score) {
+    return score === null || score === undefined ? "-" : score;
+};
+
+let castTimeForTable = function (time) {
+    if (time === null || time === undefined) {
+        return "-:--";
+    }
+    let minutes = Math.floor(time/60);
+    let seconds = Math.floor(time%60);
+    seconds = (seconds < 10 ? "0" : "") + seconds;
+    return minutes + ":" + seconds;
 };
 
 let switchToNextTabIfAutoSwitching = function () {

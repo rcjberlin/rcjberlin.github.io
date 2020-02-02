@@ -87,3 +87,11 @@ tr, td {
 tr.qualified {
     background-color: #51ffa9;
 }
+
+td {
+    text-align: right;
+}
+tr:nth-child(1) td,
+td:nth-child(2) {
+    text-align: left;
+}
