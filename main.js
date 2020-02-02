@@ -1,9 +1,10 @@
 const tabs = [
-    { tabTitle: "Line", heading: "Rescue Line", url: "/evaluation/results/standingsLine.json" },
-    { tabTitle: "Line Entry", heading: "Rescue Line Entry", url: "/evaluation/results/standingsEntry.json" },
-    { tabTitle: "Maze", heading: "Rescue Maze" },
-    { tabTitle: "Maze Entry", heading: "Rescue Maze Entry" },
+    { tabTitle: "Line", heading: "Rescue Line", url: "/evaluation/results/standingsLine.json", qualifyingTeams: 1 },
+    { tabTitle: "Line Entry", heading: "Rescue Line Entry", url: "/evaluation/results/standingsEntry.json", qualifyingTeams: 1 },
+    { tabTitle: "Maze", heading: "Rescue Maze", qualifyingTeams: 1 },
+    { tabTitle: "Maze Entry", heading: "Rescue Maze Entry", qualifyingTeams: 1 },
 ];
+// TODO: update number of qualifying teams when they are defined
 
 const FREQUENCY_PROGRESS_UPDATE_IN_MS = 20;
 const TIME_RELOAD_DATA_IN_S = 60;
@@ -105,6 +106,9 @@ let updateDataForTab = function (tabId) {
             table.innerHTML = "";
             for (let row of json) {
                 let newRow = table.insertRow(-1);
+                if (!isNaN(row[0]) && Number(row[0]) <= tabs[tabId].qualifyingTeams) {
+                    newRow.classList.add("qualified");
+                }
                 for (let cell of row) {
                     newRow.insertCell(-1).innerText = String(cell);
                 }
