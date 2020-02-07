@@ -294,6 +294,7 @@ let stopAutoSwitchingTabs = function () {
     clearAutoSwitchingTimeout();
     clearProgressInterval();
     clearProgressBar();
+    clearSwitchToNextTabTimeout();
 };
 
 let switchTabAfterTimeoutAndRepeat = function (durationInSeconds) {
