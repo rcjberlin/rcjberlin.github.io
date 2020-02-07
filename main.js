@@ -1,6 +1,7 @@
+let urlLastUpdateTimes = "/evaluation/results/_lastUpdate.json";
 let tabs = [
-    { tabTitle: "Line", heading: "Rescue Line", url: "/evaluation/results/standingsLine.json", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 1 },
-    { tabTitle: "Line Entry", heading: "Rescue Line Entry", url: "/evaluation/results/standingsEntry.json", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 1 },
+    { tabTitle: "Line", heading: "Rescue Line", url: "/evaluation/results/standingsLine.json", lastUpdateId: "line", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 1 },
+    { tabTitle: "Line Entry", heading: "Rescue Line Entry", url: "/evaluation/results/standingsEntry.json", lastUpdateId: "lineEntry", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 1 },
     { tabTitle: "Maze", heading: "Rescue Maze", qualifyingTeams: 1 },
     { tabTitle: "Maze Entry", heading: "Rescue Maze Entry", qualifyingTeams: 1 },
 ];
@@ -12,6 +13,9 @@ const TIME_RELOAD_DATA_IN_S = 60;
 const LS_TAB_ID = "current-tab-id";
 
 let currentTabId = null;
+
+let lastUpdateTimes = {};
+let lastUpdateOfLastUpdateTimes = null;
 
 let timeStartProgress = null;
 let progressDuration = null;
@@ -82,7 +86,7 @@ let showTab = function (tabId) {
     document.getElementById("box-"+tabId).classList.add("active");
     currentTabId = tabId;
     writeTabIdToLocalStorage(tabId);
-    updateDataForTab(tabId);
+    updateDataForTabIfChanged(tabId);
 };
 
 let switchToNextTab = function () {
@@ -93,30 +97,90 @@ let switchToNextTab = function () {
     }
 };
 
-let updateDataForTab = function (tabId) {
+let updateDataForTabIfChanged = function (tabId) {
     if (tabs[tabId].url) {
-        if (tabs[tabId].loaded && tabs[tabId].loaded + TIME_RELOAD_DATA_IN_S > getTime()) {
-            // last update was just recently
-            return;
+        if (!lastUpdateOfLastUpdateTimes) {
+            // lastUpdateTimes are not yet fetched
+            updateLastUpdateTimesAndUpdateTabIfNeeded(tabId);
+        } else if (checkIfTabIsUpToDate(tabId)) {
+            // tab is up-to-date according to lastUpdateTime-object -> check if this is up-to-date
+            if (lastUpdateOfLastUpdateTimes + TIME_RELOAD_DATA_IN_S > getTime()) {
+                // lastUpdateTime also up-to-date (was fetched just recently)
+                return;
+            } else {
+                // lastUpdateTime should be updated
+                updateLastUpdateTimesAndUpdateTabIfNeeded(tabId);
+            }
+        } else {
+            // tab needs to be updated
+            updateDateForTab(tabId);
         }
-        fetch(tabs[tabId].url)
-        .then((response) => response.json())
-        .then((json) => {
-            tabs[tabId].data = json;
-            tabs[tabId].sortedColumn = null;
-            showTable(tabId);
-            tabs[tabId].loaded = getTime();
-            document.getElementById("last-update-"+tabId).innerText = "Erfolgreich"; // TODO: insert time of last server update
-        })
-        .catch((error) => {
-            console.log(error);
-            document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen";
-            switchToNextTabIfAutoSwitching();
-        });
     } else {
-        document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen";
+        document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen (keine Datenquelle hinterlegt)";
         switchToNextTabIfAutoSwitching();
     }
+};
+
+let updateLastUpdateTimesAndUpdateTabIfNeeded = function (tabId) {
+    fetch(urlLastUpdateTimes)
+    .then((response) => response.json())
+    .then((json) => {
+        lastUpdateOfLastUpdateTimes = getTime();
+        for (let lastUpdateTimeId in json) {
+            // copy values to local object (+ converting to seconds)
+            lastUpdateTimes[lastUpdateTimeId] = json[lastUpdateTimeId] / 1000;
+        }
+
+        if (checkIfTabIsUpToDate(tabId)) {
+            // tab is up-to-date
+            return;
+        } else {
+            // tab needs to be updated
+            updateDateForTab(tabId);
+        }
+    })
+    .catch((error) => {
+        console.log(error);
+        document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen";
+    });
+};
+
+let updateDateForTab = function (tabId) {
+    fetch(tabs[tabId].url)
+    .then((response) => response.json())
+    .then((json) => {
+        tabs[tabId].data = json;
+        tabs[tabId].sortedColumn = null;
+        tabs[tabId].lastUpdated = lastUpdateTimes[tabs[tabId].lastUpdateId];
+        showTable(tabId);
+        document.getElementById("last-update-"+tabId).innerText = convertDateToString(tabs[tabId].lastUpdated);
+    })
+    .catch((error) => {
+        console.log(error);
+        document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen";
+        switchToNextTabIfAutoSwitching();
+    });
+};
+
+let checkIfTabIsUpToDate = function (tabId) {
+    return tabs[tabId].lastUpdated && tabs[tabId].lastUpdated === lastUpdateTimes[tabs[tabId].lastUpdateId];
+};
+
+let convertDateToString = function (unixTimestampInSeconds) {
+    let date = new Date(unixTimestampInSeconds*1000);
+    return "hh:mm:ss (DD.MM.YYYY)".replace("hh", pad(date.getHours()))
+                                  .replace("mm", pad(date.getMinutes()))
+                                  .replace("ss", pad(date.getSeconds()))
+                                  .replace("DD", pad(date.getDate()))
+                                  .replace("MM", pad(date.getMonth()+1))
+                                  .replace("YYYY", pad(date.getFullYear(),4));
+};
+
+let pad = function (value, length, character) {
+    if (length === undefined) { length = 2; }
+    if (character === undefined) { character = 0; }
+    value = String(value);
+    return String(character).repeat(Math.max(0, length-value.length)) + value;
 };
 
 let showTable = function (tabId) {
