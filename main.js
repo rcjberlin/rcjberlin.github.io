@@ -125,7 +125,7 @@ let updateDataForTabIfChanged = function (tabId) {
             }
         } else {
             // tab needs to be updated
-            updateDateForTab(tabId);
+            updateDataForTab(tabId);
         }
     } else {
         document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen (keine Datenquelle hinterlegt)";
@@ -148,7 +148,7 @@ let updateLastUpdateTimesAndUpdateTabIfNeeded = function (tabId) {
             return;
         } else {
             // tab needs to be updated
-            updateDateForTab(tabId);
+            updateDataForTab(tabId);
         }
     })
     .catch((error) => {
@@ -157,7 +157,7 @@ let updateLastUpdateTimesAndUpdateTabIfNeeded = function (tabId) {
     });
 };
 
-let updateDateForTab = function (tabId) {
+let updateDataForTab = function (tabId) {
     fetch(tabs[tabId].url)
     .then((response) => response.json())
     .then((json) => {
@@ -170,7 +170,10 @@ let updateDateForTab = function (tabId) {
     .catch((error) => {
         console.log(error);
         document.getElementById("last-update-"+tabId).innerText = "Fehlgeschlagen";
-        switchToNextTabIfAutoSwitching();
+        if (tabs[tabId].data === undefined) {
+            // switch only if no data is there from previous tries (otherwise there will still be a table with data)
+            switchToNextTabIfAutoSwitching();
+        }
     });
 };
 
@@ -211,7 +214,10 @@ let updateTextTabData = function (tabId) {
     })
     .catch((error) => {
         console.log(error);
-        switchToNextTabIfAutoSwitching();
+        if (document.getElementsByClassName("info-text-"+tabId).length === 0) {
+            // no data there -> not necessary to show tab any longer
+            switchToNextTabIfAutoSwitching();
+        }
     });
 };
 
@@ -306,7 +312,7 @@ let switchToNextTabTimeout = function (durationInSeconds) {
     if (!durationInSeconds) { durationInSeconds = 2; }
     switchToNextTabTimeoutId = setTimeout(function () {
         switchToNextTab();
-        startAutoSwitchingTabs(progressDuration); // restart so that progress starts at 0%
+        restartAutoSwitchingTabs(); // restart so that progress starts at 0%
     }, durationInSeconds*1000);
 };
 
@@ -329,11 +335,19 @@ let startAutoSwitchingTabs = function (durationInSeconds) {
     switchTabAfterTimeoutAndRepeat(durationInSeconds);
 };
 
-let stopAutoSwitchingTabs = function () {
+let restartAutoSwitchingTabs = function () {
+    stopAutoSwitchingTabs(true);
+    switchTabAfterTimeoutAndRepeat(progressDuration);
+};
+
+let stopAutoSwitchingTabs = function (dontClearSwitchToNextTabTimeout) {
+    if (dontClearSwitchToNextTabTimeout === undefined) { dontClearSwitchToNextTabTimeout = false; }
     clearAutoSwitchingTimeout();
     clearProgressInterval();
     clearProgressBar();
-    clearSwitchToNextTabTimeout();
+    if (!dontClearSwitchToNextTabTimeout) {
+        clearSwitchToNextTabTimeout();
+    }
 };
 
 let switchTabAfterTimeoutAndRepeat = function (durationInSeconds) {
