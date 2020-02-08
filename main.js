@@ -1,5 +1,6 @@
 let urlLastUpdateTimes = "/evaluation/results/_lastUpdate.json";
 let tabs = [
+    { tabTitle: "Infos", heading: "Informationen", isTextTab: true, url: "./info.json" },
     { tabTitle: "Line", heading: "Rescue Line", url: "/evaluation/results/standingsLine.json", lastUpdateId: "line", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 1 },
     { tabTitle: "Line Entry", heading: "Rescue Line Entry", url: "/evaluation/results/standingsEntry.json", lastUpdateId: "lineEntry", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 1 },
     { tabTitle: "Maze", heading: "Rescue Maze", qualifyingTeams: 1 },
@@ -56,6 +57,10 @@ let initTabs = function () {
         lastUpdateText = box.querySelector("#last-update");
         lastUpdateText.id = "last-update-" + i;
         lastUpdateText.innerHTML = "";
+        if (tabs[i].isTextTab) {
+            table.style.display = "none";
+            lastUpdateText.style.display = "none";
+        }
         boxWrapper.appendChild(box);
     }
 };
@@ -98,7 +103,14 @@ let switchToNextTab = function () {
 };
 
 let updateDataForTabIfChanged = function (tabId) {
-    if (tabs[tabId].url) {
+    if (tabs[tabId].isTextTab) {
+        if (tabs[tabId].lastUpdated && tabs[tabId].lastUpdated + TIME_RELOAD_DATA_IN_S > getTime()) {
+            // was updated just recently
+            return;
+        } else {
+            updateTextTabData(tabId);
+        }
+    } else if (tabs[tabId].url) {
         if (!lastUpdateOfLastUpdateTimes) {
             // lastUpdateTimes are not yet fetched
             updateLastUpdateTimesAndUpdateTabIfNeeded(tabId);
@@ -181,6 +193,33 @@ let pad = function (value, length, character) {
     if (character === undefined) { character = 0; }
     value = String(value);
     return String(character).repeat(Math.max(0, length-value.length)) + value;
+};
+
+let updateTextTabData = function (tabId) {
+    fetch(tabs[tabId].url)
+    .then((response) => response.json())
+    .then((json) => {
+        tabs[tabId].lastUpdated = getTime();
+        let box = document.getElementById("box-"+tabId), p;
+        removeAllInfoTextsInTab(tabId);
+        for (let element of json) {
+            p = document.createElement("P");
+            p.classList.add("info-text-"+tabId);
+            p.innerText = element;
+            box.appendChild(p);
+        }
+    })
+    .catch((error) => {
+        console.log(error);
+        switchToNextTabIfAutoSwitching();
+    });
+};
+
+let removeAllInfoTextsInTab = function (tabId) {
+    let elements = document.getElementsByClassName("info-text-"+tabId);
+    while (elements.length > 0) {
+        elements[0].remove();
+    }
 };
 
 let showTable = function (tabId) {
