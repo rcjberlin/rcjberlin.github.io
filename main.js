@@ -83,7 +83,7 @@ let switchToTab = function (tabId) {
 let hideTab = function (tabId) {
     document.getElementById("tab-"+tabId).classList.remove("active");
     document.getElementById("box-"+tabId).classList.remove("active");
-    clearSwitchToNextTabTimeout();
+    restartAutoSwitchingTabs();
 };
 
 let showTab = function (tabId) {
@@ -312,7 +312,7 @@ let switchToNextTabTimeout = function (durationInSeconds) {
     if (!durationInSeconds) { durationInSeconds = 2; }
     switchToNextTabTimeoutId = setTimeout(function () {
         switchToNextTab();
-        restartAutoSwitchingTabs(); // restart so that progress starts at 0%
+        restartAutoSwitchingTabs(true); // restart so that progress starts at 0%
     }, durationInSeconds*1000);
 };
 
@@ -335,9 +335,11 @@ let startAutoSwitchingTabs = function (durationInSeconds) {
     switchTabAfterTimeoutAndRepeat(durationInSeconds);
 };
 
-let restartAutoSwitchingTabs = function () {
-    stopAutoSwitchingTabs(true);
-    switchTabAfterTimeoutAndRepeat(progressDuration);
+let restartAutoSwitchingTabs = function (dontClearSwitchToNextTabTimeout) {
+    if (autoSwitchingTimeoutId) {
+        stopAutoSwitchingTabs(dontClearSwitchToNextTabTimeout);
+        switchTabAfterTimeoutAndRepeat(progressDuration);
+    }
 };
 
 let stopAutoSwitchingTabs = function (dontClearSwitchToNextTabTimeout) {
