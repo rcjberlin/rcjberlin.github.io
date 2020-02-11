@@ -268,7 +268,7 @@ let sortTable = function (tabId, column) {
                     tabs[tabId].columnsScore.includes(column)) {
             return reverse ? b[column] - a[column] : a[column] - b[column];
         } else if (typeof(a[column]) === "string" && typeof(b[column]) === "string") {
-            return reverse ^ (a[column].toLowerCase() < b[column].toLowerCase());
+            return (reverse ? -1 : 1) * a[column].toLowerCase().localeCompare(b[column].toLowerCase());
         } else {
             return reverse ^ (a[column] < b[column]);
         }
