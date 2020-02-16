@@ -1,12 +1,11 @@
 let urlLastUpdateTimes = "/evaluation/results/_lastUpdate.json";
 let tabs = [
     { tabTitle: "Infos", heading: "Informationen", isTextTab: true, url: "./info.json" },
-    { tabTitle: "Line", heading: "Rescue Line", url: "/evaluation/results/standingsLine.json", lastUpdateId: "line", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 1 },
-    { tabTitle: "Line Entry", heading: "Rescue Line Entry", url: "/evaluation/results/standingsEntry.json", lastUpdateId: "lineEntry", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 1 },
+    { tabTitle: "Line", heading: "Rescue Line", url: "/evaluation/results/standingsLine.json", lastUpdateId: "line", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 7 },
+    { tabTitle: "Line Entry", heading: "Rescue Line Entry", url: "/evaluation/results/standingsEntry.json", lastUpdateId: "lineEntry", columnsScore: [2,4,6,8], columnsTime: [3,5,7,9], qualifyingTeams: 4 },
     { tabTitle: "Maze", heading: "Rescue Maze", qualifyingTeams: 1 },
-    { tabTitle: "Maze Entry", heading: "Rescue Maze Entry", qualifyingTeams: 1 },
+    { tabTitle: "Maze Entry", heading: "Rescue Maze Entry", qualifyingTeams: 2 },
 ];
-// TODO: update number of qualifying teams when they are defined
 
 const FREQUENCY_PROGRESS_UPDATE_IN_MS = 20;
 const TIME_RELOAD_DATA_IN_S = 60;
