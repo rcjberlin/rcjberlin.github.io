@@ -204,10 +204,14 @@ let updateTextTabData = function (tabId) {
         tabs[tabId].lastUpdated = getTime();
         let box = document.getElementById("box-"+tabId), p;
         removeAllInfoTextsInTab(tabId);
+        if (isFullscreen()) {
+            // show url of this page in info tab if url-bar is not visible
+            json.push(getInfoTextURL());
+        }
         for (let element of json) {
             p = document.createElement("P");
             p.classList.add("info-text-"+tabId);
-            p.innerText = element;
+            p.innerHTML = element;
             box.appendChild(p);
         }
     })
@@ -225,6 +229,19 @@ let removeAllInfoTextsInTab = function (tabId) {
     while (elements.length > 0) {
         elements[0].remove();
     }
+};
+
+let isFullscreen = function () {
+    if (window.fullScreen) {
+        // supported by Firefox
+        return true;
+    }
+    return false;
+};
+
+let getInfoTextURL = function () {
+    let url = window.location.href;
+    return `Diese Webseite ist unter <a href="${url}">${url}</a> verfügbar.`;
 };
 
 let showTable = function (tabId) {
