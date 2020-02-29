@@ -95,3 +95,11 @@ tr:nth-child(1) td,
 td:nth-child(2) {
     text-align: left;
 }
+
+/* hardcoded font sizes for berlin-2020 */
+#box-1 {
+    font-size: 0.65em;
+}
+#box-2 {
+    font-size: 0.9em;
+}
