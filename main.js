@@ -177,7 +177,8 @@ let updateDataForTab = function (tabId) {
 };
 
 let checkIfTabIsUpToDate = function (tabId) {
-    return tabs[tabId].lastUpdated && tabs[tabId].lastUpdated === lastUpdateTimes[tabs[tabId].lastUpdateId];
+    // TODO: return false is just for direct reloading / testing - remove later!
+    return false; //tabs[tabId].lastUpdated && tabs[tabId].lastUpdated === lastUpdateTimes[tabs[tabId].lastUpdateId];
 };
 
 let convertDateToString = function (unixTimestampInSeconds) {
