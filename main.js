@@ -10,6 +10,8 @@ let tabs = [
 const FREQUENCY_PROGRESS_UPDATE_IN_MS = 20;
 const TIME_RELOAD_DATA_IN_S = 60;
 
+const URL_PARAM_NAME_AUTO_SWITCHING_TABS = "autoswitch";
+
 const LS_TAB_ID = "current-tab-id";
 
 let currentTabId = null;
@@ -27,10 +29,16 @@ let getTime = function () {
 	return (new Date).getTime() / 1000;
 };
 
+let url = new URL(window.location.href);
+
 window.onload = function() {
     initTabs();
     switchToTab(readTabIdFromLocalStorage() || 0);
-    //startAutoSwitchingTabs();
+
+    let autoSwitchingTabsURLValue = url.searchParams.get(URL_PARAM_NAME_AUTO_SWITCHING_TABS);
+    if (autoSwitchingTabsURLValue) {
+        startAutoSwitchingTabs(isNaN(autoSwitchingTabsURLValue) ? undefined : autoSwitchingTabsURLValue);
+    }
 };
 
 let initTabs = function () {
@@ -177,8 +185,7 @@ let updateDataForTab = function (tabId) {
 };
 
 let checkIfTabIsUpToDate = function (tabId) {
-    // TODO: return false is just for direct reloading / testing - remove later!
-    return false; //tabs[tabId].lastUpdated && tabs[tabId].lastUpdated === lastUpdateTimes[tabs[tabId].lastUpdateId];
+    return tabs[tabId].lastUpdated && tabs[tabId].lastUpdated === lastUpdateTimes[tabs[tabId].lastUpdateId];
 };
 
 let convertDateToString = function (unixTimestampInSeconds) {
