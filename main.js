@@ -141,7 +141,7 @@ let updateDataForTabIfChanged = function (tabId) {
 };
 
 let updateLastUpdateTimesAndUpdateTabIfNeeded = function (tabId) {
-    fetch(urlLastUpdateTimes)
+    fetch(urlLastUpdateTimes, { "headers": { "Cache-Control": "no-store" } })
     .then((response) => response.json())
     .then((json) => {
         lastUpdateOfLastUpdateTimes = getTime();
@@ -165,7 +165,7 @@ let updateLastUpdateTimesAndUpdateTabIfNeeded = function (tabId) {
 };
 
 let updateDataForTab = function (tabId) {
-    fetch(tabs[tabId].url)
+    fetch(tabs[tabId].url, { "headers": { "Cache-Control": "no-store" } })
     .then((response) => response.json())
     .then((json) => {
         tabs[tabId].data = json;
@@ -206,7 +206,7 @@ let pad = function (value, length, character) {
 };
 
 let updateTextTabData = function (tabId) {
-    fetch(tabs[tabId].url)
+    fetch(tabs[tabId].url, { "headers": { "Cache-Control": "no-store" } })
     .then((response) => response.json())
     .then((json) => {
         tabs[tabId].lastUpdated = getTime();
